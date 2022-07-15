@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CarRental</title>
+    <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.7/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui@2.15.7/lib/index.js"></script>
+    <script src="js/url.js"></script>
+    <script src="js/c_id.js"></script>
+        <style type="text/css">
+            body {
+                background-image: url("/static/login_bg.jpg");
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+        </style>
+
+</head>
+<body>
+    <div id="rentalCar" style="width: 600px;margin-left: 24%">
+        <el-input v-model="c_id" placeholder="Please Enter your ID"></el-input>
+        <el-select v-model="current_office_id" placeholder="offices" @change="displayClass()">
+            <el-option
+                v-for="item in off_options"
+                :key="item.OFFICE_ID"
+                :label="item.OFF_ADDRESS"
+                :value="item.OFFICE_ID">
+            </el-option>
+        </el-select>
+
+        <el-select v-model="current_class_id" placeholder="vehicle class" @change="displayVehicle()">
+            <el-option
+                v-for="item in cla_options"
+                :key="item.CLASS_ID"
+                :label="item.CLASS_NAME"
+                :value="item.CLASS_ID">
+            </el-option>
+        </el-select>
+
+        <el-select v-model="current_vehicle_id" placeholder="vehicle">
+            <el-option
+                v-for="item in veh_options"
+                :key="item.VEHICLE_ID"
+                :label="item.VEHICLE_INFO"
+                :value="item.VEHICLE_ID">
+            </el-option>
+        </el-select>
+
+        <span class="demonstration">Pick Up and Drop Off Date</span>
+        <el-date-picker
+            v-model="dates"
+            type="daterange"
+            range-separator="to"
+            start-placeholder="Pick Up Date"
+            end-placeholder="Drop Off Date" @change="displayDates()">
+        </el-date-picker>
+
+        <el-button @click="submitForm()">submit</el-button>>
+    </div>
+
+    <script>
+        var vm = new Vue({
+            el: "#rentalCar",
+            data() {
+                return {
+                    c_id:'',
+                    off_options: '',
+                    cla_options: '',
+                    veh_options: '',
+                    current_office_id: '',
+                    current_class_id: '',
+                    current_vehicle_id: '',
+                    dates:'',
+                    r_id:'',
+                };
+            },
+
+            methods:{
+                displayOffice: function(){
+                    var settings = {
+                        "url": "http://"+ myip +"/chooseOffice/",
+                        "method": "GET",
+                        "timeout": 0,
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        vm.off_options = response.data;
+                    });
+                },
+
+                displayClass(){
+                    var settings = {
+                        "url": "http://"+myip+"/chooseClass/",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data": {
+                            "current_office_id": vm.current_office_id,
+                        }
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        vm.cla_options = response.data;
+                    });
+                },
+
+                displayVehicle(){
+                    var settings = {
+                        "url": "http://"+myip+"/chooseVehicle/",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data": {
+                            "current_office_id": vm.current_office_id,
+                            "current_class_id": vm.current_class_id
+                        }
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        vm.veh_options = response.data;
+                    });
+                },
+
+                displayDates(){
+                    console.log(vm.dates[0].getDate());
+                },
+
+                submitForm(){
+                    var settings = {
+                        "url": "http://"+myip+"/insertRental/",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data": {
+                            "current_office_id": vm.current_office_id,
+                            "current_class_id": vm.current_class_id,
+                            "current_vehicle_id": vm.current_vehicle_id,
+                            "pick_date": vm.dates[0],
+                            "drop_date": vm.dates[1],
+                            "c_id": vm.c_id
+                        }
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        if(response.flag){
+                            vm.r_id = response.r_id;
+                            alert("rent successfully!:) your rental id is " + vm.r_id);
+                            window.location.href = "ServiceOption.html";
+                        }
+                        else{
+                            alert("rent failed!:(");
+                        }
+                    });
+
+                },
+            },
+
+            mounted(){
+                this.displayOffice()
+            }
+        })
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CarRental</title>
+    <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.7/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui@2.15.7/lib/index.js"></script>
+    <script src="js/url.js"></script>
+    <script src="js/c_id.js"></script>
+        <style type="text/css">
+            body {
+                background-image: url("/static/login_bg.jpg");
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+        </style>
+
+</head>
+<body>
+    <div id="rentalCar" style="width: 800px;margin-left: 20%">
+        INVOICEid:{{invoice_id}}
+        <el-input v-model="r_id" placeholder="Please Enter the rental ID" @change="displayCoupon()"></el-input>
+
+        <el-select v-model="drop_office_id" placeholder="offices">
+            <el-option
+                v-for="item in off_options"
+                :key="item.OFFICE_ID"
+                :label="item.OFF_ADDRESS"
+                :value="item.OFFICE_ID">
+            </el-option>
+        </el-select>
+
+        <el-input v-model="end_odo" placeholder="Enter the End Odometer"></el-input>
+
+        <el-input v-model="odo_limit" placeholder="Enter the Odometer Limitation"></el-input>
+
+        <el-select v-model="current_coupon_id" placeholder="coupon_id">
+            <el-option
+                v-for="item in cou_options"
+                :key="item.COUPON_ID"
+                :label="item.DISCOUNT"
+                :value="item.COUPON_ID">
+            </el-option>
+        </el-select>
+
+        <el-button @click="submitForm()">submit</el-button>
+        <el-button @click="displayInvoice()">Generate Invoice</el-button>
+        <br><br/><br><br/>
+        <div style="color:white; width:100px">INVOICE</div>
+        <el-descriptions class="margin-top" :column="3" border>
+            <el-descriptions-item>
+                <template slot="label">Invoice ID</template>
+                {{invoice_id}}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">Rental ID</template>
+                {{r_id}}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">Invoice Date</template>
+                {{invoice_date}}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">Invoice Amount</template>
+                {{invoice_amount}}
+            </el-descriptions-item>
+        </el-descriptions>
+        <br><br/><br><br/>
+        <div style="color:white; width:100px">PAYMENT</div>
+
+        <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="100px" class="demo-dynamic">
+        <el-form-item
+            v-for="(domain, index) in dynamicValidateForm.domains"
+            :label="'PAYMENT ' + index"
+            :key="domain.key"
+            :prop="'domains.' + index + '.value'">
+            <el-select v-model="domain.pay_method" placeholder="payment method">
+            <el-option
+                v-for="item in domain.pay_options"
+                :key="item.id"
+                :label="item.method"
+                :value="item.id">
+            </el-option>
+            </el-select>
+
+            <el-input v-model="domain.card_num" placeholder="Enter the card number"></el-input>
+            <el-input v-model="domain.pay_amount" placeholder="Enter the payment amount"></el-input>
+            <el-button @click.prevent="removeDomain(domain)">删除</el-button>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="checkOut('dynamicValidateForm')">Check Out</el-button>
+                <el-button @click="addDomain">Add Payment</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+
+    <script>
+        var vm = new Vue({
+            el: "#rentalCar",
+            data() {
+                return {
+                    r_id:'',
+                    off_options: '',
+                    cou_options:'',
+                    drop_office_id: '',
+                    current_coupon_id:'',
+                    end_odo:'',
+                    odo_limit:'',
+                    invoice_id:'1',
+                    invoice_date:'',
+                    invoice_amount:'',
+                    dynamicValidateForm:{
+                        domains: [{
+                            pay_method:'',
+                            pay_options:[{id:1, method: 'credit'},{id:2, method: 'debit'},{id:3, method: 'gift card'}],
+                            pay_amount:'',
+                            card_num:'',
+                        }],
+                    },
+
+                };
+            },
+
+            methods:{
+                displayOffice: function(){
+                    var settings = {
+                        "url": "http://"+ myip +"/chooseOffice/",
+                        "method": "GET",
+                        "timeout": 0,
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        vm.off_options = response.data;
+                    });
+                },
+
+                displayCoupon(){
+                    var settings = {
+                        "url": "http://"+myip+"/chooseCoupon/",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data": {
+                            "r_id": vm.r_id,
+                        }
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        vm.cou_options = response.data;
+                        console.log(vm.cou_options);
+                    });
+                },
+
+                submitForm(){
+                    var settings = {
+                        "url": "http://"+myip+"/completeRental/",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data": {
+                            "r_id": vm.r_id,
+                            "drop_office_id": vm.drop_office_id,
+                            "current_coupon_id": vm.current_coupon_id,
+                            "end_odo": vm.end_odo,
+                            "odo_limit": vm.odo_limit,
+                        }
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response);
+                        if(response){
+                            alert("return successfully!:)");
+                        }else{
+                            alert("failed");
+                        }
+                    });
+                },
+
+                displayInvoice(){
+                    var settings = {
+                        "url": "http://"+myip+"/displayInvoice/",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data":{
+                            "r_id": vm.r_id
+                        }
+                    };
+
+                    $.ajax(settings).done(function (response) {
+                        console.log(response.data);
+                        vm.invoice_id = (response.data)[0].INVOICE_ID;
+                        vm.invoice_date = (response.data)[0].INVOICE_DATE;
+                        vm.invoice_amount = (response.data)[0].INVOICE_AMOUNT;
+                    });
+                },
+
+                addDomain() {
+                    this.dynamicValidateForm.domains.push({
+                        pay_method:'',
+                        pay_options:[{id:1, method: 'credit'},{id:2, method: 'debit'},{id:3, method: 'gift card'}],
+                        pay_amount:'',
+                        card_num:'',
+                        key: Date.now()
+                    });
+                },
+
+                removeDomain(item) {
+                    var index = this.dynamicValidateForm.domains.indexOf(item)
+                    if (index !== -1) {
+                        this.dynamicValidateForm.domains.splice(index, 1)
+                    }
+                },
+
+            },
+
+            mounted(){
+                this.displayOffice()
+            }
+        })
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Corporate Register</title>
+    <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/vue.js" type="text/javascript"></script>
+    <!-- 引入样式 -->
+    <link href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="js/url.js"></script>
+    <style>
+        body {
+            background-image: url("image/back1.jpg");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+<br/><br/>
+<h2 align="center">
+    Corporate Sign Up
+</h2>
+<div id="register" style="width: 600px;margin-left: 24%">
+<el-form :model="ruleForm" :rules="rules" label-width="200px" class="demo-ruleForm" label-width="100px" ref="ruleForm">
+    <el-form-item label="Corporate Name" prop="cor_name" class="item">
+        <el-input v-model="ruleForm.cor_name"></el-input>
+    </el-form-item>
+    <el-form-item label="password" prop="password">
+        <el-input autocomplete="off" type="password" v-model="ruleForm.password"></el-input>
+    </el-form-item>
+    <el-form-item label="confirm password" prop="checkPass">
+        <el-input autocomplete="off" type="password" v-model="ruleForm.checkPass"></el-input>
+    </el-form-item>
+    <el-form-item label="phone number" prop="phone">
+        <el-input v-model="ruleForm.phone"></el-input>
+    </el-form-item>
+    <el-form-item label="Email" prop="email">
+        <el-input v-model="ruleForm.email"></el-input>
+    </el-form-item>
+    <el-form-item label="Employee ID" prop="emp_id">
+        <el-input v-model="ruleForm.emp_id"></el-input>
+    </el-form-item>
+    <el-form-item label="Corporate Registration Number" prop="crn">
+        <el-input v-model="ruleForm.crn"></el-input>
+    </el-form-item>
+
+    <el-form-item label="Street" prop="street">
+        <el-input v-model="ruleForm.street"></el-input>
+    </el-form-item>
+    <el-form-item label="City" prop="city">
+        <el-input v-model="ruleForm.city"></el-input>
+    </el-form-item>
+    <el-form-item label="State" prop="state">
+        <el-input v-model="ruleForm.state"></el-input>
+    </el-form-item>
+    <el-form-item label="Zipcode" prop="zipcode">
+        <el-input v-model="ruleForm.zipcode"></el-input>
+    </el-form-item>
+
+    <el-form-item>
+        <el-button @click="submitForm('ruleForm')" type="primary">Sign Up</el-button>
+        <el-button @click="resetForm('ruleForm')">Reset</el-button>
+    </el-form-item>
+</el-form>
+</div>
+<style>
+    .item, .el-form-item__label, .el-radio__label{
+        color: #16131c;
+    }
+</style>
+<script>
+    var vm = new Vue({
+        el:"#register",
+        data() {
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('please enter password'));
+                } else {
+                    if (this.ruleForm.checkPass !== '') {
+                        this.$refs.ruleForm.validateField('checkPass');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('please enter password again'));
+                } else if (value !== this.ruleForm.password) {
+                    callback(new Error('not match!'));
+                } else {
+                    callback();
+                }
+            };
+
+            return {
+                ruleForm: {
+                    cor_name: '',
+                    phone: '',
+                    email:'',
+                    password: '',
+                    checkPass: '',
+                    street:'',
+                    city:'',
+                    state:'',
+                    zipcode:'',
+                    emp_id:'',
+                    crn:'',
+                },
+                rules: {
+                    phone: [
+                        {required: true, message: 'please enter phone number', trigger: 'blur'}
+                    ],
+                    password: [
+                        {validator: validatePass, trigger: 'blur'}
+                    ],
+                    checkPass: [
+                        {validator: validatePass2, trigger: 'blur'}
+                    ],
+                },
+
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        var settings = {
+                            "url": "http://"+myip+"/register_corp/",
+                            "method": "POST",
+                            "timeout": 0,
+                            "headers": {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            "data": {
+                                "cor_name": vm.ruleForm.cor_name,
+                                "password": vm.ruleForm.password,
+                                "email": vm.ruleForm.email,
+                                "phone": vm.ruleForm.phone,
+                                "emp_id": vm.ruleForm.emp_id,
+                                "crn": vm.ruleForm.crn,
+                                "street": vm.ruleForm.street,
+                                "city": vm.ruleForm.city,
+                                "state": vm.ruleForm.state,
+                                "zipcode": vm.ruleForm.zipcode,
+                            }
+                        };
+
+                        $.ajax(settings).done(function (response) {
+                            console.log(response);
+                            vm.ruleForm.c_id = response.c_id;
+                            alert("your id is " + vm.ruleForm.c_id);
+                            window.history.go(-1);
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+
+        }
+    })
+</script>
+</body>
+</html>

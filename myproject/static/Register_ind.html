@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Individual Register</title>
+    <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/vue.js" type="text/javascript"></script>
+    <!-- 引入样式 -->
+    <link href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="js/url.js"></script>
+    <style>
+        body {
+            background-image: url("/static/image/back1.jpg");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+<br/><br/>
+<h2 align="center">
+    Individual Sign Up
+</h2>
+<div id="register" style="width: 600px;margin-left: 24%">
+<el-form :model="ruleForm" :rules="rules" label-width="200px" class="demo-ruleForm" label-width="100px" ref="ruleForm">
+    <el-form-item label="First Name" prop="Fname" class="item" background >
+        <el-input v-model="ruleForm.first_name"></el-input>
+    </el-form-item>
+    <el-form-item label="Middle Name" prop="Mname" class="item">
+        <el-input v-model="ruleForm.middle_name"></el-input>
+    </el-form-item>
+    <el-form-item label="Last Name" prop="Lname" class="item">
+        <el-input v-model="ruleForm.last_name"></el-input>
+    </el-form-item>
+    <el-form-item label="password" prop="password">
+        <el-input autocomplete="off" type="password" v-model="ruleForm.password"></el-input>
+    </el-form-item>
+    <el-form-item label="confirm password" prop="checkPass">
+        <el-input autocomplete="off" type="password" v-model="ruleForm.checkPass"></el-input>
+    </el-form-item>
+    <el-form-item label="Phone number" prop="phone">
+        <el-input v-model="ruleForm.phone"></el-input>
+    </el-form-item>
+    <el-form-item label="Email" prop="email">
+        <el-input v-model="ruleForm.email"></el-input>
+    </el-form-item>
+    <el-form-item label="Driver License Number" prop="dln">
+        <el-input v-model="ruleForm.dln"></el-input>
+    </el-form-item>
+    <el-form-item label="Insurance Company Name" prop="icn">
+        <el-input v-model="ruleForm.icn"></el-input>
+    </el-form-item>
+    <el-form-item label="Insurance Policy Number" prop="ipn">
+        <el-input v-model="ruleForm.ipn"></el-input>
+    </el-form-item>
+
+    <el-form-item label="Street" prop="street">
+        <el-input v-model="ruleForm.street"></el-input>
+    </el-form-item>
+    <el-form-item label="City" prop="city">
+        <el-input v-model="ruleForm.city"></el-input>
+    </el-form-item>
+    <el-form-item label="State" prop="state">
+        <el-input v-model="ruleForm.state"></el-input>
+    </el-form-item>
+    <el-form-item label="Zipcode" prop="zipcode">
+        <el-input v-model="ruleForm.zipcode"></el-input>
+    </el-form-item>
+    <el-form-item>
+<!--        <el-input type="submit" href = "{% url 'register_ind' %}">sign up</el-input>-->
+        <el-button @click="submitForm('ruleForm')" >sign up</el-button>
+        <el-button @click="resetForm('ruleForm')">reset</el-button>
+    </el-form-item>
+</el-form>
+
+</div>
+<style>
+    .item, .el-form-item__label, .el-radio__label{
+        color: #16131c;
+    }
+</style>
+<script>
+    var vm = new Vue({
+        el:"#register",
+        data() {
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('please enter password'));
+                } else {
+                    if (this.ruleForm.checkPass !== '') {
+                        this.$refs.ruleForm.validateField('checkPass');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('please enter the password again'));
+                } else if (value !== this.ruleForm.password) {
+                    callback(new Error('not match!'));
+                } else {
+                    callback();
+                }
+            };
+
+            return {
+                ruleForm: {
+                    first_name: '',
+                    middle_name:'',
+                    last_name:'',
+                    phone: '',
+                    email:'',
+                    password: '',
+                    checkPass: '',
+                    dln:'',
+                    icn:'',
+                    ipn:'',
+                    street:'',
+                    city:'',
+                    state:'',
+                    zipcode:'',
+                    c_id:'',
+                },
+                rules: {
+                    first_name: [
+                        {required: true, message: 'please enter your first name', trigger: 'blur'},
+                        {min: 2, max: 5, trigger: 'blur'}
+                    ],
+                    last_name: [
+                        {required: true, message: 'please enter your last name', trigger: 'blur'},
+                        {min: 2, max: 5, trigger: 'blur'}
+                    ],
+                    phone: [
+                        {required: true, message: 'please enter your phone number', trigger: 'blur'}
+                    ],
+                    dln:[
+                        {required: true, message: 'please enter dln', trigger: 'blur'}
+                    ],
+                    password: [
+                        {validator: validatePass, trigger: 'blur'}
+                    ],
+                    checkPass: [
+                        {validator: validatePass2, trigger: 'blur'}
+                    ],
+                },
+
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        var settings = {
+                            "url": "http://"+myip+"/register_ind/",
+                            "method": "POST",
+                            "timeout": 0,
+                            "headers": {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            "data": {
+                                "first_name": vm.ruleForm.first_name,
+                                "middle_name": vm.ruleForm.middle_name,
+                                "last_name": vm.ruleForm.last_name,
+                                "password": vm.ruleForm.password,
+                                "phone": vm.ruleForm.phone,
+                                "email": vm.ruleForm.email,
+                                "dln": vm.ruleForm.dln,
+                                "icn": vm.ruleForm.icn,
+                                "ipn": vm.ruleForm.ipn,
+                                "street": vm.ruleForm.street,
+                                "city": vm.ruleForm.city,
+                                "state": vm.ruleForm.state,
+                                "zipcode": vm.ruleForm.zipcode,
+                            }
+                        };
+
+                        $.ajax(settings).done(function (response) {
+                            console.log(response);
+                            vm.ruleForm.c_id = response.c_id;
+                            alert("your id is " + vm.ruleForm.c_id);
+                            window.history.go(-1);
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+
+        }
+    })
+</script>
+</body>
+</html>
